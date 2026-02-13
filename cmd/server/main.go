@@ -5,8 +5,8 @@ import (
 	amqp "github.com/rabbitmq/amqp091-go"
 	"os"
 	"os/signal"
-	"github.com/rgarcia2304/internal/pubsub"
-	"github.com/rgarcia2304/internal/routing"
+	"github.com/rgarcia2304/learn-pub-sub-starter/internal/pubsub"
+	"github.com/rgarcia2304/learn-pub-sub-starter/internal/routing"
 )
 
 func main() {
