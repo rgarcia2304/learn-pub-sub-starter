@@ -1,6 +1,7 @@
 package main
 
 import (
+	"log"
 	"fmt"
 	amqp "github.com/rabbitmq/amqp091-go"
 	"os"
@@ -11,21 +12,21 @@ import (
 
 func main() {
 	fmt.Println("Starting Peril server...")
-	connectionString := "amqp://guest:guest@localhost:5672/"
+	connectionString := "amqp://guest:guest@127.0.0.1:5672/"
 	conn, err := amqp.Dial(connectionString)
 	if err != nil{
-		fmt.Println(err)
+		log.Fatalf("Program failed because of %v", err)
 	}
 	defer conn.Close()
 
 	fmt.Println("Connection Was Successful")
 
-	channel, err := connection.Channel()
+	channel, err := conn.Channel()
 	
 	pubsub.PublishJSON(channel, routing.ExchangePerilDirect, routing.PauseKey, routing.PlayingState{IsPaused: true})
 
 	if err != nil{
-		fmt.Println(err)
+		log.Fatalf("Program failed because of %v", err)
 	}
 
 
