@@ -2,7 +2,14 @@ package pubsub
 
 import(
 	amqp "github.com/rabbitmq/amqp091-go"
-	"log"
+	"fmt"
+)
+
+type SimpleQueueType int
+
+const(
+	Transient SimpleQueueType = iota
+	Durable 
 )
 
 func DeclareAndBind(
@@ -11,47 +18,35 @@ func DeclareAndBind(
 	queueName, 
 	key string, 
 	queueType SimpleQueueType, 
-) (*ampq.Channel, ampq.Queue, error){
+) (*amqp.Channel, amqp.Queue, error){
 
 	channel, err := conn.Channel()
 	if err != nil{
-		log.Fatalf("Failed to bind the queue" ,err)
+		return nil, amqp.Queue{}, fmt.Errorf("open channel: %w", err)
 	}
 	
-	var isDurable bool
-	if queueType == ampq.Durable{
-		isDurable = true
-	}else{
-		isDurable = false
-	}
-
-	var isTransient
-	var isExclusive
-	if queueType == ampq.Transient{
-		isTransient = true
-		isExclusive = true
-	}else{
-		isTransient = false
-		isExclusive = false
-	}
-
+	
+	durable := queueType == Durable
+	autoDelete := queueType == Transient
+	exclusive := queueType == Transient
 
 	queue, err := channel.QueueDeclare(
 		queueName, 
-		isDurable,
-		isTransient,
-		isExclusive, 
+		durable,
+		autoDelete,
+		exclusive, 
 		false,
 		nil,
 	)
 
 	if err != nil{
-		log.Fatalf("Failed to declare queue", err)
+		channel.Close()
+		return nil, amqp.Queue{}, fmt.Errorf("declare queue %w ", err)
 	}
 
-	if err = channel.QueueBind(queueName, key, exchange, false, nil)
-	if err != nil{
-		log.Fatalf("Failed to bind the queue", err)
+	if err := channel.QueueBind(queueName, key, exchange, false, nil); err != nil{
+		channel.Close()
+		return nil, amqp.Queue{}, fmt.Errorf("bind queue : %w", err)
 	}
 
 	return channel, queue, nil 

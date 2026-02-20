@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"strconv"
+	"github.com/rgarcia2304/learn-pub-sub-starter/internal/pubsub"
 )
 
 type MoveOutcome int
@@ -14,7 +15,8 @@ const (
 	MoveOutcomeMakeWar
 )
 
-func (gs *GameState) HandleMove(move ArmyMove) MoveOutcome {
+
+func (gs *GameState) HandleMove(move ArmyMove) pubsub.AckType {
 	defer fmt.Println("------------------------")
 	player := gs.GetPlayerSnap()
 
@@ -26,16 +28,16 @@ func (gs *GameState) HandleMove(move ArmyMove) MoveOutcome {
 	}
 
 	if player.Username == move.Player.Username {
-		return MoveOutcomeSamePlayer
+		return pubsub.NackDiscard
 	}
 
 	overlappingLocation := getOverlappingLocation(player, move.Player)
 	if overlappingLocation != "" {
 		fmt.Printf("You have units in %s! You are at war with %s!\n", overlappingLocation, move.Player.Username)
-		return MoveOutcomeMakeWar
+		return pubsub.Ack
 	}
 	fmt.Printf("You are safe from %s's units.\n", move.Player.Username)
-	return MoveOutComeSafe
+	return pubsub.Ack
 }
 
 func getOverlappingLocation(p1 Player, p2 Player) Location {
